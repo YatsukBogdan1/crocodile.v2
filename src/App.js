@@ -1,26 +1,35 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
-import './App.css';
+import AppWrapper from './styled-components/appWrapper';
+import Login from './screens/Login';
+import Game from './screens/Game';
 
-class App extends Component {
+type State = {
+  currentScreen: 0 | 1
+}
+
+class App extends Component<{}, State> {
+  state = {
+    currentScreen: 0
+    // currentScreen: 1
+  }
+
+  onLoginSuccess = () => {
+    this.setState({ currentScreen: 1 })
+  }
+
+  renderCurrentScreen = () => {
+    switch(this.state.currentScreen) {
+      case 0: return <Login onLoginSuccess={this.onLoginSuccess}/>
+      case 1: return <Game />
+      default: return null;
+    }
+  }
+
   render() {
     return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Edit <code>src/App.js</code> and save to reload.
-          </p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-        </header>
-      </div>
+      <AppWrapper>
+        {this.renderCurrentScreen()}
+      </AppWrapper>
     );
   }
 }
