@@ -5,8 +5,13 @@ import { Container } from './styled-components';
 import Socket from '../../../../api/socket';
 import {connect} from 'react-redux';
 import Button from '../../../../styled-components/button';
+import { appendMessage } from '../../../../actions/table';
+import { bindActionCreators } from 'redux';
 
 type Props = {
+  actions: {
+    appendMessage: typeof appendMessage,
+  },
   messages: Array<Message>,
   username: ?string,
   tableId: ?number,
@@ -34,7 +39,7 @@ class Chat extends Component<Props, State> {
     Socket.sendMessage({
       userId,
       tableId,
-      text: this.state.input
+      text: this.state.input,
     });
     this.setState({input: ''});
   }
@@ -59,7 +64,7 @@ class Chat extends Component<Props, State> {
   }
 }
 
-const mapStateToProps = (state: ReducerState): Props => ({
+const mapStateToProps = (state: ReducerState) => ({
   isPainter: state.user.isPainter,
   messages: state.table.messages,
   username: state.user.username,
@@ -68,4 +73,11 @@ const mapStateToProps = (state: ReducerState): Props => ({
   isGameActive: state.game.isActive
 })
 
+// const mapDispatchToProps = dispatch => ({
+//   actions: bindActionCreators({
+//     appendMessage
+//   }, dispatch)
+// })
+
+// export default connect(mapStateToProps, mapDispatchToProps)(Chat);
 export default connect(mapStateToProps)(Chat);

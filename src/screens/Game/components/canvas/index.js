@@ -3,9 +3,12 @@ import { Container, CanvasContainer } from './styled-components';
 import PainterTools from './components/painterTools';
 import { connect } from 'react-redux';
 import { colors, sizes } from '../../../../utils';
+import Socket from '../../../../api/socket';
 
 type Props = {
-  isCurrentUserPainter: boolean
+  isCurrentUserPainter: boolean,
+  tableId: ?number,
+  userId: ?number,
 }
 
 type State = {
@@ -29,6 +32,14 @@ class Canvas extends Component<Props, State> {
     mouseDown: false
   }
 
+  componentWillMount() {
+    Socket.socket.on('drawImage', this.paintFromSocket);
+  }
+
+  componentWillUnmount() {
+    Socket.socket.on('drawImage', () => false)
+  }
+
   componentDidMount() {
     const canvasContainer = this.refs['canvas_container'];
     this.setState({
@@ -44,28 +55,48 @@ class Canvas extends Component<Props, State> {
   
   onMouseDown = event => {
     if (this.props.isCurrentUserPainter){
-      this.paint(event.clientX, event.clientY, "start");
+      this.paintSelf(event.clientX, event.clientY, "start");
       this.setState({ mouseDown: true });
-      // socket.emit("showImage",me, {x:x,y:y,type:"start", color:current_color});
     }
   };
 
   onMouseMove = event => {
     if (this.props.isCurrentUserPainter && this.state.mouseDown){
-      this.paint(event.clientX, event.clientY, "draw");
-      // socket.emit("showImage",me, {x:x,y:y,type:"draw", color:current_color});
+      this.paintSelf(event.clientX, event.clientY, "draw");
     }
   };
 
   onMouseUp = event =>{
     if (this.props.isCurrentUserPainter) {
-      this.paint(event.clientX, event.clientY, "end");
+      this.paintSelf(event.clientX, event.clientY, "end");
       this.setState({ mouseDown: false });
-      // socket.emit("showImage", me, {x: x, y: y, type: "end", color:current_color, size:current_size});
     }
   };
 
-  paint = (x, y, type, size) => {
+  sendDrawDataToSocket = (x: number, y: number, type: DrawType) => {
+    if (this.props.tableId == null || this.props.userId == null) return;
+
+    Socket.drawImage({
+      x,
+      y,
+      type,
+      color: this.state.activeColor,
+      tableId: this.props.tableId,
+      userId: this.props.userId,
+      size: this.state.activeSize
+    });
+  }
+
+  paintSelf = (x: number, y: number, type: DrawType) => {
+    this.paint(x, y, type, this.state.activeSize, this.state.activeColor);
+    this.sendDrawDataToSocket(x, y, type);
+  }
+
+  paintFromSocket = data => {
+    this.paint(data.x, data.y, data.type, data.size, data.color);
+  }
+
+  paint = (x, y, type, size, color) => {
     const ctx = this.refs["canvas"].getContext("2d");
     ctx.fillStyle = "solid";
     ctx.strokeStyle = this.state.activeColor;
@@ -134,6 +165,8 @@ class Canvas extends Component<Props, State> {
 }
 
 const mapStateToProps = (state: ReducerState): Props => ({
+  tableId: state.table.id,
+  userId: state.user.id,
   isCurrentUserPainter: state.user.isPainter
 })
 

@@ -73,7 +73,7 @@ class Login extends Component<Props, State> {
 }
 
 const mapStateToProps = (state: ReducerState) => ({ socketId: state.app.socketId })
-const mapDispatchToProps = (dispatch: Function) => ({
+const mapDispatchToProps = dispatch => ({
   actions: bindActionCreators({
     setUserData,
     setTableData

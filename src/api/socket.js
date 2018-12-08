@@ -24,4 +24,8 @@ export default class Socket {
   static sendMessage(message: UserMessageToSocket) {
     this.socket.emit('message', message);
   }
+
+  static drawImage(data: DrawImageData) {
+    this.socket.emit('drawImage', data);
+  }
 }
